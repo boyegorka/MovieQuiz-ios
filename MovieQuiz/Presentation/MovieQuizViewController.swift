@@ -1,94 +1,36 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
+    
+    // MARK: - Outlets
+    @IBOutlet private weak var textLabel: UILabel!
+    @IBOutlet private weak var imageView: UIImageView!
+    @IBOutlet private weak var counterLabel: UILabel!
+    @IBOutlet private weak var noButton: UIButton!
+    @IBOutlet private weak var yesButton: UIButton!
+    @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
+    
+    
+    // MARK: - Properties
+    private var currentQuestionIndex: Int = 0
+    private var correctAnswers: Int = 0
+    private let questionsAmount: Int = 10
+    private var currentQuestion: QuizQuestion?
+    private var statisticService: StatisticService = StatisticServiceImplementation()
+    private var alertPresenter: AlertPresenter = AlertPresenter()
+    private var questionFactory: QuestionFactoryProtocol = QuestionFactory(moviesLoader: MoviesLoader())
+    
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         
-        var documentURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fileName = "top250MoviesIMDB.json"
-        documentURL.appendPathComponent(fileName)
-        
-        struct Top: Decodable {
-            let items: [Movie]
-        }
-        
-        struct Actor: Codable {
-            let id: String
-            let image: String
-            let name: String
-            let asCharacter: String
-        }
-        
-        struct Movie: Codable {
-            let id: String
-            let rank: String
-            let title: String
-            let fullTitle: String
-            let year: String
-            let image: String
-            let crew: String
-            let imDbRating: String
-            let imDbRatingCount: String
-            
-            enum CodingKeys: CodingKey {
-                case id, rank, title, fullTitle, year, image, crew, imDbRating, imDbRatingCount
-            }
-            
-            enum ParseError: Error {
-                case yearFailure
-                case runtimeMinsFailure
-            }
-            
-            init(from decoder: Decoder) throws {
-                let container = try decoder.container(keyedBy: CodingKeys.self)
-                
-                id = try container.decode(String.self, forKey: .id)
-                rank = try container.decode(String.self, forKey: .rank)
-                title = try container.decode(String.self, forKey: .title)
-                fullTitle = try container.decode(String.self, forKey: .fullTitle)
-                year = try container.decode(String.self, forKey: .year)
-                image = try container.decode(String.self, forKey: .image)
-                crew = try container.decode(String.self, forKey: .crew)
-                imDbRating = try container.decode(String.self, forKey: .imDbRating)
-                imDbRatingCount = try container.decode(String.self, forKey: .imDbRatingCount)
-            }
-        }
-        
-        func getMovie(from jsonString: String) -> Top? {
-            let data = jsonString.data(using: .utf8)!
-            let result = try? JSONDecoder().decode(Top.self, from: data)
-            return result
-        }
-        
-        
-        
         super.viewDidLoad()
         imageView.layer.cornerRadius = 20
         questionFactory.delegate = self
-        questionFactory.requestNextQuestion()
-        alertPresenter.delegate = self
+        alertPresenter.viewController = self
+        showLoadingIndicator()
+        questionFactory.loadData()
     }
-    
-    
-    private var currentQuestionIndex: Int = 0
-    private var correctAnswers: Int = 0
-    private let questionsAmount: Int = 10
-    
-    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
-    private var currentQuestion: QuizQuestion?
-    private var statisticService: StatisticService = StatisticServiceImplementation()
-    private var alertPresenter: AlertPresenter = AlertPresenter()
-    
-    
-    @IBOutlet private weak var textLabel: UILabel!
-    @IBOutlet private weak var imageView: UIImageView!
-    @IBOutlet private weak var counterLabel: UILabel!
-    
-    
-    @IBOutlet private weak var noButton: UIButton!
-    @IBOutlet private weak var yesButton: UIButton!
-    
     
     @IBAction private func yesButtonClicked(_ sender: Any) {
         guard let currentQuestion = currentQuestion else {return}
@@ -115,10 +57,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         }
     }
     
-    // MARK: - AlertPresenterDelegate
+    func didLoadDataFromServer() {
+        hideLoadingIndicator()
+        questionFactory.requestNextQuestion()
+    }
     
-    var viewController: UIViewController {
-        self
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription)
     }
     
     // MARK: - Private functions
@@ -131,7 +76,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        return QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage(), question: model.text, questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
+        return QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(), question: model.text, questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
     
     private func showAnswerResult(isCorrect: Bool) {
@@ -155,7 +100,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
-            //let text = correctAnswers == questionsAmount ? "Поздравляем, Вы ответили на 10 из 10!" : "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
             statisticService.store(correct: correctAnswers, total: questionsAmount)
             let text = "Ваш результат: \(correctAnswers)/\(questionsAmount)\n Количество сыграных квизов: \(statisticService.gamesCount)\n Рекорд: \(statisticService.bestGame.correctAnswers)/\(statisticService.bestGame.totalAnswers) (\(statisticService.bestGame.date.dateTimeString))\n Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%"
             
@@ -170,7 +114,28 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             
         } else {
             currentQuestionIndex += 1
-            self.questionFactory.requestNextQuestion()
+            self.questionFactory.loadData()
         }
+    }
+    
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+    
+    private func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
+    }
+    
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator()
+        
+        let viewModel = AlertModel(title: "Ошибка!", message: message, buttonText: "Попробовать ещё раз") { [weak self] in
+            guard let self = self else { return }
+            self.showLoadingIndicator()
+            self.questionFactory.loadData()
+        }
+        alertPresenter.show(quiz: viewModel)
     }
 }
