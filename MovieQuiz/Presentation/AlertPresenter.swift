@@ -9,10 +9,10 @@ import UIKit
 
 final class AlertPresenter {
     
-    weak var delegate: UIViewController?
+    weak var viewController: UIViewController?
     
     init(delegate: UIViewController? = nil) {
-        self.delegate = delegate
+        self.viewController = delegate
     }
     
     func show(quiz result: AlertModel) {
@@ -21,7 +21,7 @@ final class AlertPresenter {
             result.completion()
         }
         alert.addAction(action)
-        delegate?.present(alert, animated: true, completion: nil)
+        viewController?.present(alert, animated: true, completion: nil)
     }
     
 }

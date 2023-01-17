@@ -15,8 +15,6 @@ struct MoviesLoader: MoviesLoading {
     // MARK: - NetworkClient
     private let networkClient = NetworkClient()
     
-   
-    
     // MARK: - URL
     
     private var mostPopularMoviesUrl: URL {

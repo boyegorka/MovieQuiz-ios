@@ -12,6 +12,8 @@ class QuestionFactory: QuestionFactoryProtocol {
     
     private let moviesLoader: MoviesLoading
     private var movies: [MostPopularMovie] = []
+    private var alertPresenter: AlertPresenter = AlertPresenter()
+
     weak var delegate: QuestionFactoryDelegate?
     
     
@@ -19,20 +21,6 @@ class QuestionFactory: QuestionFactoryProtocol {
         self.delegate = delegate
         self.moviesLoader = moviesLoader
     }
-
-    
-//    private let questions: [QuizQuestion] = [
-//        QuizQuestion(image: "The Godfather", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: true),
-//        QuizQuestion(image: "The Dark Knight", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: true),
-//        QuizQuestion(image: "Kill Bill", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: true),
-//        QuizQuestion(image: "The Avengers", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: true),
-//        QuizQuestion(image: "Deadpool", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: true),
-//        QuizQuestion(image: "The Green Knight", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: true),
-//        QuizQuestion(image: "Old", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: false),
-//        QuizQuestion(image: "The Ice Age Adventures of Buck Wild", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: false),
-//        QuizQuestion(image: "Tesla", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: false),
-//        QuizQuestion(image: "Vivarium", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: false),
-//    ]
     
     func loadData() {
         moviesLoader.loadMovies { [weak self] result in
@@ -62,6 +50,14 @@ class QuestionFactory: QuestionFactoryProtocol {
             do {
                 imageData = try Data(contentsOf: movie.resizedImageUrl)
             } catch {
+//                Эта штука под вопросом, должна выскакивать ошибка, если не удалось загрузить данные
+                let viewModel = AlertModel(title: "Ошибка!", message: "Failed to load image", buttonText: "Попробовать ещё раз") { [weak self] in
+                    guard let self = self else { return }
+                    self.loadData()
+                }
+                self.alertPresenter.show(quiz: viewModel)
+                
+                //
                 print("Failed to load image")
             }
             
@@ -81,7 +77,5 @@ class QuestionFactory: QuestionFactoryProtocol {
                 self.delegate?.didReceiveNextQuestion(question: question)
             }
         }
-//                let question = questions[safe: index]
-//                delegate?.didReceiveNextQuestion(question: question)
     }
 }
