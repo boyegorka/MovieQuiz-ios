@@ -13,7 +13,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     
     // MARK: - Properties
     private var correctAnswers: Int = 0
-    private var currentQuestion: QuizQuestion?
     private var statisticService: StatisticService = StatisticServiceImplementation()
     private var alertPresenter: AlertPresenter = AlertPresenter()
     private var questionFactory: QuestionFactoryProtocol = QuestionFactory(moviesLoader: MoviesLoader())
@@ -31,17 +30,17 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
         questionFactory.loadData()
     }
     
-    @IBAction private func yesButtonClicked(_ sender: Any) {
-        guard let currentQuestion = currentQuestion else {return}
-        let givenAnswer = true
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-    }
+//    @IBAction private func yesButtonClicked(_ sender: Any) {
+//        guard let currentQuestion = currentQuestion else {return}
+//        let givenAnswer = true
+//        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+//    }
     
-    @IBAction private func noButtonClicked(_ sender: Any) {
-        guard let currentQuestion = currentQuestion else {return}
-        let givenAnswer = false
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-    }
+//    @IBAction private func noButtonClicked(_ sender: Any) {
+//        guard let currentQuestion = presenter.currentQuestion else {return}
+//        let givenAnswer = false
+//        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+//    }
     
     // MARK: - QuestionFactoryDelegate
     
@@ -49,7 +48,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
         guard let question = question else {
             return
         }
-        currentQuestion = question
+        presenter.currentQuestion = question
         let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
@@ -78,7 +77,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
 //        return QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(), question: model.text, questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
 //    }
     
-    private func showAnswerResult(isCorrect: Bool) {
+    func showAnswerResult(isCorrect: Bool) {
         yesButton.isEnabled = false
         noButton.isEnabled = false
         imageView.layer.masksToBounds = true
