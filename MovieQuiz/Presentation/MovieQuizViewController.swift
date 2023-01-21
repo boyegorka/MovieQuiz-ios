@@ -109,7 +109,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
                 self.correctAnswers = 0
                 self.questionFactory.requestNextQuestion()
             }
-            
             alertPresenter.show(quiz: viewModel)
             
         } else {
