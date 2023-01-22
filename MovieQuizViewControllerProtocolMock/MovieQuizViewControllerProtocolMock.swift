@@ -13,6 +13,21 @@ final class MovieQuizViewControllerProtocolMock: MovieQuizViewControllerProtocol
     private var alertPresenter: AlertPresenter = AlertPresenter()
     private var presenter: MovieQuizPresenter!
     
+    func enableButtons() {
+        
+    }
+    
+    func disableButtons() {
+        
+    }
+    
+    func clearHighlighBorder() {
+        
+    }
+    
+    func showResultMessage() {
+        
+    }
     
     func show(quiz step: MovieQuiz.QuizStepViewModel) {
         
@@ -38,12 +53,11 @@ final class MovieQuizViewControllerProtocolMock: MovieQuizViewControllerProtocol
         
         func testPresenterConvertMode() throws {
             
-            // Mock не работает, подставил настоящий контроллер
             let viewControllerMock = MovieQuizViewControllerProtocolMock()
             
             let realViewController = MovieQuizViewController()
             
-            let sut = MovieQuizPresenter(viewController: realViewController )
+            let sut = MovieQuizPresenter(viewController: viewControllerMock )
 
             let emptyData = Data()
             let question = QuizQuestion(image: emptyData, text: "Question text", correctAnswer: true)
