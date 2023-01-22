@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController{
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     
     // MARK: - Outlets
     @IBOutlet private weak var textLabel: UILabel!
@@ -11,7 +11,7 @@ final class MovieQuizViewController: UIViewController{
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
     
-    // MARK: - Properties
+    // MARK: - Propertiesx
     private var alertPresenter: AlertPresenter = AlertPresenter()
     private var presenter: MovieQuizPresenter!
     
@@ -20,7 +20,7 @@ final class MovieQuizViewController: UIViewController{
     override func viewDidLoad() {
         super.viewDidLoad()
         presenter = MovieQuizPresenter(viewController: self)
-        //alertPresenter.viewController = self
+        alertPresenter.viewController = self
         //showLoadingIndicator()
         roundConrers()
         
@@ -44,20 +44,16 @@ final class MovieQuizViewController: UIViewController{
         textLabel.text = step.question
     }
     
-//    private func proceedToNextQuestionOrResults() {
-//        if presenter.isLastQuestion() {
-//            
-//            let viewModel = AlertModel(title: "Этот раунд окончен!", message: presenter.showResultMessage(), buttonText: "Сыграть ещё раз") { [weak self] in
-//                guard let self = self else { return }
-//                self.presenter.restartGame()
-//            }
-//            
-//            alertPresenter.show(quiz: viewModel)
-//            
-//        } else {
-//            self.presenter.switchToNextQuestion()
-//        }
-//    }
+    func showResultMessage() {
+        let message = presenter.getResultMessage()
+        
+        let viewModel = AlertModel(title: "Этот раунд окончен!", message: message, buttonText: "Сыграть ещё раз") { [weak self] in
+            guard let self = self else { return }
+            self.presenter.restartGame()
+        }
+        alertPresenter.show(quiz: viewModel)
+
+    }
     
     func highlightBorder(isCorrectAnswer: Bool) {
         imageView.layer.masksToBounds = true
@@ -66,7 +62,6 @@ final class MovieQuizViewController: UIViewController{
     }
     
     func clearHighlighBorder() {
-        imageView.layer.masksToBounds = false
         imageView.layer.borderWidth = 0
     }
     
@@ -86,12 +81,14 @@ final class MovieQuizViewController: UIViewController{
     }
     
     func showNetworkError(message: String) {
+        
         hideLoadingIndicator()
         
         let viewModel = AlertModel(title: "Ошибка!",
                                    message: message,
                                    buttonText: "Попробовать ещё раз") { [weak self] in
             guard let self = self else { return }
+            
             self.presenter.restartGame()
         }
         alertPresenter.show(quiz: viewModel)
