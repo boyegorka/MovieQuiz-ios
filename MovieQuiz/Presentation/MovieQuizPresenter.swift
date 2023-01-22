@@ -28,19 +28,19 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         
     }
     
-//    Прячет индикатор загрузки, вызывает функцию requestNextQuestion
+///    Прячет индикатор загрузки, вызывает функцию requestNextQuestion
     func didLoadDataFromServer() {
         viewController?.hideLoadingIndicator()
         questionFactory.requestNextQuestion()
     }
     
-//     Вызывает функцию показа ошибки
+///     Вызывает функцию показа ошибки
     func didFailToLoadData(with error: Error) {
         let message = error.localizedDescription
         viewController?.showNetworkError(message: message)
     }
     
-//    Принимает на вход вопрос, далее конвертирует его при помощи convert и показывает по главному потоку
+///    Принимает на вход вопрос, далее конвертирует его при помощи convert и показывает по главному потоку
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
             return
@@ -52,47 +52,47 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-//    Проверяет, является ли вопрос последним
-    func isLastQuestion() -> Bool {
+///    Проверяет, является ли вопрос последним
+    private func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
     
-//    Проверяет, является ли вопрос корректным и добавляет +1 к счётчику правильных ответов, если тот верный
-    func didAnswer(isCorrectAnswer: Bool) {
+///    Проверяет, является ли вопрос корректным и добавляет +1 к счётчику правильных ответов, если тот верный
+    private func didAnswer(isCorrectAnswer: Bool) {
         if isCorrectAnswer {
             correctAnswers += 1
         }
     }
     
-//    Функция выставляет значение текущего вопроса и кол-во правильных ответов на 0 и вызывает функцию requestNextQuestion
+///    Функция выставляет значение текущего вопроса и кол-во правильных ответов на 0 и вызывает функцию requestNextQuestion
     func restartGame() {
         currentQuestionIndex = 0
         correctAnswers = 0
         questionFactory.requestNextQuestion()
     }
     
-//    Функция прибавляет к индексу 1
-    func switchToNextQuestion() {
+///    Функция прибавляет к индексу 1
+    private func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
     
-//    Конвертация из структуры данных в структуру графическую
-    func convert(model: QuizQuestion) -> QuizStepViewModel {
+///    Конвертация из структуры данных в структуру графическую
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(), question: model.text, questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
     
-//    Выставляет didAnswer на true при нажатии кнопки да
+///    Выставляет didAnswer на true при нажатии кнопки да
     func yesButtonClicked() {
         didAnswer(isYes: true)
     }
     
-//    Выставляет didAnswer на false при нажатии кнопки нет
+///    Выставляет didAnswer на false при нажатии кнопки нет
     func noButtonClicked() {
         didAnswer(isYes: false)
     }
     
-//    Сверяет правильность ответа
-    func didAnswer(isYes: Bool) {
+///    Сверяет правильность ответа
+    private func didAnswer(isYes: Bool) {
         guard let currentQuestion = currentQuestion else { return }
         
         let givenAnswer = isYes
@@ -100,8 +100,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         proceedWithAnswer(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
-//    Действия при ответе: рамка ответа(зелёный, красный), отключение кнопок и через время переход к следующему вопросу(или ответу) и отмена действий написаных ранее
-    func proceedWithAnswer(isCorrect: Bool) {
+///    Действия при ответе: рамка ответа(зелёный, красный), отключение кнопок и через время переход к следующему вопросу(или ответу) и отмена действий написаных ранее
+    private func proceedWithAnswer(isCorrect: Bool) {
         didAnswer(isCorrectAnswer: isCorrect)
         viewController?.highlightBorder(isCorrectAnswer: isCorrect)
         viewController?.disableButtons()
@@ -114,8 +114,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-//    Проверяет, последний ли это вопрос, если последний, то вызывает функцию показа последнего аллерта, если не последний, то переход на следующий вопрос
-    func proceedToNextQuestionOrResults() {
+///    Проверяет, последний ли это вопрос, если последний, то вызывает функцию показа последнего аллерта, если не последний, то переход на следующий вопрос
+    private func proceedToNextQuestionOrResults() {
         if self.isLastQuestion() {
             
             viewController?.showResultMessage()
@@ -126,7 +126,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-//    Генерирует строку сообщения для финального аллерта
+///    Генерирует строку сообщения для финального аллерта
     func getResultMessage() -> String {
         statisticService.store(correct: correctAnswers, total: questionsAmount)
         

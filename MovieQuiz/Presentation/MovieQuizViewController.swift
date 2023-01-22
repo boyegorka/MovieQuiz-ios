@@ -21,7 +21,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         super.viewDidLoad()
         presenter = MovieQuizPresenter(viewController: self)
         alertPresenter.viewController = self
-        //showLoadingIndicator()
         roundConrers()
         
     }
